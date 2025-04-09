@@ -1,0 +1,6 @@
+rootProject.name = 'example_redis'
+
+include 'pub_sub',
+        'pub_sub:simple',
+        'database',
+        'cache'
