@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Send Message</title>
 </head>
 <body>
@@ -10,19 +9,18 @@
 <h1>Send a Message</h1>
 
 <form id="messageForm">
-    <label for="sender">Sender:</label>
-    <input type="text" id="sender" name="sender" required><br><br>
+    <label for="sender">Sender:</label><br>
+    <input type="text" id="sender" name="sender" required autofocus><br><br>
 
-    <label for="content">Content:</label>
+    <label for="content">Content:</label><br>
     <input type="text" id="content" name="content" required><br><br>
 
-    <input type="submit" value="Send Message">
+    <button type="submit" id="sendBtn">Send Message</button>
 </form>
 
 <p id="status"></p>
 
 <script>
-    // Get form elements and status message element
     const messageForm = document.getElementById('messageForm');
     const senderInput = document.getElementById('sender');
     const contentInput = document.getElementById('content');
@@ -31,19 +29,21 @@
     messageForm.addEventListener('submit', function(event) {
         event.preventDefault();
 
-        // Get form values
-        const sender = senderInput.value;
-        const content = contentInput.value;
-        const timestamp = new Date().toISOString();  // Get current timestamp in ISO format
+        const sender = senderInput.value.trim();
+        const content = contentInput.value.trim();
+        const timestamp = new Date().toISOString();
 
-        // Create MessageDto object
+        if (!sender || !content) {
+            statusMessage.textContent = "Please fill in all fields.";
+            return;
+        }
+
         const messageDto = {
             sender: sender,
             content: content,
             timestamp: timestamp
         };
 
-        // Send POST request to backend
         fetch('/v1/api/messages', {
             method: 'POST',
             headers: {
@@ -54,10 +54,9 @@
             .then(response => {
                 if (response.ok) {
                     statusMessage.textContent = "Message sent successfully!";
-
-                    // Clear form fields after successful submission
                     senderInput.value = '';
                     contentInput.value = '';
+                    senderInput.focus();
                 } else {
                     statusMessage.textContent = "Error sending message.";
                 }
