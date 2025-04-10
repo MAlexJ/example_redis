@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Redis publisher</title>
+</head>
+<body>
+<br><br>
+<form id="messageForm">
+    <label>Message:</label>
+    <input type="text" name="message" id="messageInput"><br><br>
+    <input type="submit" value="Send">
+</form>
+<br><br>
+<div id="error"></div>
+<script>
+    document.getElementById('messageForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const input = document.getElementById('messageInput');
+        const message = input.value;
+
+        const inputError = document.getElementById('error')
+
+        if (message === '') {
+            inputError.textContent = 'Pls enter the message!';
+            input.focus();
+            return;
+        }
+
+        fetch(`/messages/${encodeURIComponent(message)}`, {
+            method: 'GET'
+        })
+            .then(response => {
+                input.value = '';
+                inputError.textContent = '';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                inputError.textContent = 'Error: ' + error;
+            });
+    });
+</script>
+</body>
+</html>
