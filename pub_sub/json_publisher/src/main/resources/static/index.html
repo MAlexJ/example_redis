@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send Message</title>
+</head>
+<body>
+
+<h1>Send a Message</h1>
+
+<form id="messageForm">
+    <label for="sender">Sender:</label>
+    <input type="text" id="sender" name="sender" required><br><br>
+
+    <label for="content">Content:</label>
+    <input type="text" id="content" name="content" required><br><br>
+
+    <input type="submit" value="Send Message">
+</form>
+
+<p id="status"></p>
+
+<script>
+    // Get form elements and status message element
+    const messageForm = document.getElementById('messageForm');
+    const senderInput = document.getElementById('sender');
+    const contentInput = document.getElementById('content');
+    const statusMessage = document.getElementById('status');
+
+    messageForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        // Get form values
+        const sender = senderInput.value;
+        const content = contentInput.value;
+        const timestamp = new Date().toISOString();  // Get current timestamp in ISO format
+
+        // Create MessageDto object
+        const messageDto = {
+            sender: sender,
+            content: content,
+            timestamp: timestamp
+        };
+
+        // Send POST request to backend
+        fetch('/v1/api/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(messageDto)
+        })
+            .then(response => {
+                if (response.ok) {
+                    statusMessage.textContent = "Message sent successfully!";
+
+                    // Clear form fields after successful submission
+                    senderInput.value = '';
+                    contentInput.value = '';
+                } else {
+                    statusMessage.textContent = "Error sending message.";
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                statusMessage.textContent = "Error sending message.";
+            });
+    });
+</script>
+
+</body>
+</html>

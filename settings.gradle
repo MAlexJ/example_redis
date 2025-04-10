@@ -3,5 +3,6 @@ rootProject.name = 'example_redis'
 include 'pub_sub',
         'pub_sub:simple_publisher',
         'pub_sub:simple_subscriber',
+        'pub_sub:json_publisher',
         'database',
         'cache'
