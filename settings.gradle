@@ -6,4 +6,6 @@ include 'pub_sub',
         'pub_sub:json_publisher',
         'pub_sub:json_subscriber',
         'database',
+        'stream',
+        'stream:simple_stream_publisher',
         'cache'
