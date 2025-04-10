@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Redis Messages</title>
+</head>
+<body>
+<h1>📨 Redis Messages via SSE</h1>
+<ul id="messages"></ul>
+<script>
+    const eventSource = new EventSource('/sse/subscribe');
+    const ul = document.getElementById('messages');
+
+    eventSource.onmessage = function (event) {
+        const li = document.createElement('li');
+        if(event.data !== ''){
+            li.textContent = event.data;
+            ul.appendChild(li);
+        }
+    };
+</script>
+</body>
+</html>
