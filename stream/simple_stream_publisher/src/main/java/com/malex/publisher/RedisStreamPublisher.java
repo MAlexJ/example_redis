@@ -2,12 +2,14 @@ package com.malex.publisher;
 
 import com.malex.publisher.event.MessageEvent;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.connection.RedisStreamCommands;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.connection.RedisStreamCommands.XAddOptions;
 import org.springframework.data.redis.connection.stream.ObjectRecord;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class RedisStreamPublisher {
@@ -23,10 +25,9 @@ public class RedisStreamPublisher {
     ObjectRecord<String, MessageEvent> record =
         StreamRecords.objectBacked(event).withStreamKey(STREAM_KEY);
 
-    var options =
-        RedisStreamCommands.XAddOptions.maxlen(MAX_STREAM_LENGTH)
-            .approximateTrimming(true); // explicitly set approximate mode
+    XAddOptions options = XAddOptions.maxlen(MAX_STREAM_LENGTH).approximateTrimming(false);
 
-    redisTemplate.opsForStream().add(record, options);
+    var recordId = redisTemplate.opsForStream().add(record, options);
+    log.info("RecordId: {}", recordId);
   }
 }
