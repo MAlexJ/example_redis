@@ -4,9 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SubscriberJsonPollTimeoutApplication {
+public class SubscriberSimpleReadStreamApp {
 
     public static void main(String[] args) {
-        SpringApplication.run(SubscriberJsonPollTimeoutApplication.class, args);
+        SpringApplication.run(SubscriberSimpleReadStreamApp.class, args);
     }
 }
