@@ -2,6 +2,7 @@ package com.malex.publisher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.malex.publisher.event.MessageEvent;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -25,9 +26,9 @@ public class RedisStreamPublisher {
   // keep latest 10 messages
   private static final long MAX_STREAM_LENGTH = 10L;
 
-  /**
-   * Publishes a MessageEvent to a Redis stream by storing each field separately
-   * as key-value pairs instead of serializing the whole object into JSON.
+  /*
+   * Publishes a MessageEvent to a Redis stream by storing each field separately as key-value pairs
+   * instead of serializing the whole object into JSON.
    *
    * This format is easier to query and debug from Redis CLI or other tools.
    *
@@ -38,9 +39,9 @@ public class RedisStreamPublisher {
     Map<String, String> messageMap = new HashMap<>();
     messageMap.put("sender", String.valueOf(event.sender()));
     messageMap.put("content", event.content());
-    // not UTC
-    messageMap.put("timestamp", event.timestamp().toString());      
-    
+    // time in UTC format
+    messageMap.put("timestamp", event.timestamp().atZone(ZoneOffset.UTC).toInstant().toString());
+
     // Create a Redis Stream record
     MapRecord<String, String, String> record = MapRecord.create(STREAM_KEY, messageMap);
 
