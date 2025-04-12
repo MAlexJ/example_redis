@@ -17,6 +17,8 @@ public class RedisStreamPublisher {
 
     private static final String STREAM_CHAT = "message-stream-json";
 
+    private static final String STREAM_JSON_KEY = "message";
+
     private final RedisTemplate<String, MessageEvent> redisTemplate;
 
     // keep latest 10 messages
@@ -37,7 +39,7 @@ public class RedisStreamPublisher {
     public void publishEventAsJson(MessageEvent event) {
 
         // Create a stream record with the specified key and message map
-        Map<String, Object> messageMap = Map.of("message", event);
+        Map<String, Object> messageMap = Map.of(STREAM_JSON_KEY, event);
         MapRecord<String, String, Object> mapRecord = MapRecord.create(STREAM_CHAT, messageMap);
 
         // Publish the record to the Redis stream

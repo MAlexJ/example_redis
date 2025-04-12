@@ -10,7 +10,7 @@ include 'pub_sub',
         'stream:publisher_simple_class',
         'stream:publisher_json',
         'stream:publisher_key_value',
-        'stream:subscriber_simple_poll_timeout',
+        'stream:subscriber_json_poll_timeout',
         'stream:subscriber_simple_read_scheduler',
         'stream:subscriber_json_reactive_webflux',
         'cache'

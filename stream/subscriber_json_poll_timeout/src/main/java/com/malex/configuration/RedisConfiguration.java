@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.Consumer;
-import org.springframework.data.redis.connection.stream.ObjectRecord;
+import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.stream.StreamListener;
@@ -27,12 +27,12 @@ public class RedisConfiguration {
     private static final String MESSAGE_GROUP = "message-group";
 
     @Bean
-    public StreamMessageListenerContainer<String, ObjectRecord<String, String>> messageListenerContainer(
+    public StreamMessageListenerContainer<String, MapRecord<String, String, String>> messageListenerContainer(
             RedisConnectionFactory redisConnectionFactory) {
 
         // Configure a poll timeout for the BLOCK option during reading.
         var options = StreamMessageListenerContainer.StreamMessageListenerContainerOptions.builder()
-                .pollTimeout(Duration.ofSeconds(1)).targetType(String.class).build();
+                .pollTimeout(Duration.ofSeconds(1)).build();
 
         return StreamMessageListenerContainer.create(redisConnectionFactory, options);
     }
@@ -45,8 +45,8 @@ public class RedisConfiguration {
      */
     @Bean
     public Subscription subscription(
-            StreamMessageListenerContainer<String, ObjectRecord<String, String>> listenerContainer,
-            StreamListener<String, ObjectRecord<String, String>> messageListener) {
+            StreamMessageListenerContainer<String, MapRecord<String, String, String>> listenerContainer,
+            StreamListener<String, MapRecord<String, String, String>> messageListener) {
 
         // Start the listener container to begin consuming messages from the Redis stream
         listenerContainer.start();

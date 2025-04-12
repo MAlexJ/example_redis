@@ -1,6 +1,6 @@
 spring:
   application:
-    name: subscriber_simple_poll_timeout
+    name: subscriber_json_poll_timeout
 
   threads:
     virtual:
