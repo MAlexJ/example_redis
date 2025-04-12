@@ -2,6 +2,8 @@ package com.malex.publisher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.malex.publisher.event.MessageEvent;
+
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,8 +22,6 @@ public class RedisStreamPublisher {
   private static final String STREAM_KEY = "message-stream";
 
   private final RedisTemplate<String, MessageEvent> redisTemplate;
-
-  private final ObjectMapper mapper;
 
   // keep latest 10 messages
   private static final long MAX_STREAM_LENGTH = 10L;

@@ -15,12 +15,12 @@ import com.malex.publisher.event.MessageEvent;
 @RequiredArgsConstructor
 public class RedisStreamPublisher {
 
-    private static final String STREAM_CHAT = "stream:message-stream";
+    private static final String STREAM_CHAT = "message-stream-json";
 
     private final RedisTemplate<String, MessageEvent> redisTemplate;
 
     // keep latest 10 messages
-    private static final long MAX_STREAM_LENGTH = 10L;
+    private static final long MAX_STREAM_LENGTH = 3L;
 
     // Set stream trimming options: keep only the latest N messages
     private final XAddOptions options = XAddOptions.maxlen(MAX_STREAM_LENGTH).approximateTrimming(false);

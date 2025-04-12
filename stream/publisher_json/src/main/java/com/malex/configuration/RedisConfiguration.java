@@ -44,11 +44,11 @@ public class RedisConfiguration {
 
         template.setConnectionFactory(connectionFactory);
 
-        // Key , Value serializer
+        // Key, Value serializer
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(jsonRedisSerializer);
 
-        // Hash Key , Value serializer
+        // Hash: Key , Value serializer
         template.setHashKeySerializer(new StringRedisSerializer());
         template.setHashValueSerializer(jsonRedisSerializer);
 
