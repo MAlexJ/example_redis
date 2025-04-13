@@ -14,4 +14,5 @@ include 'pub_sub',
         'stream:subscriber_simple_read_scheduler',
         'stream:subscriber_json_reactive_webflux',
         'stream:offset:latest',
+        'stream:offset:beginning_of_stream',
         'cache'
