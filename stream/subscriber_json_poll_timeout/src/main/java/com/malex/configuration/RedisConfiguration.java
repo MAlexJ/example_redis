@@ -1,16 +1,19 @@
 package com.malex.configuration;
 
+import io.lettuce.core.RedisBusyException;
 import java.time.Duration;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.stream.StreamListener;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.data.redis.stream.Subscription;
@@ -46,7 +49,11 @@ public class RedisConfiguration {
     @Bean
     public Subscription subscription(
             StreamMessageListenerContainer<String, MapRecord<String, String, String>> listenerContainer,
-            StreamListener<String, MapRecord<String, String, String>> messageListener) {
+            StreamListener<String, MapRecord<String, String, String>> messageListener,
+            StringRedisTemplate stringRedisTemplate) {
+
+        // Create a consumer group if it does not already exist
+        createConsumerGroupIfNeeded(stringRedisTemplate);
 
         // Start the listener container to begin consuming messages from the Redis stream
         listenerContainer.start();
@@ -59,5 +66,17 @@ public class RedisConfiguration {
                 StreamOffset.create(MESSAGE_STREAM_JSON, ReadOffset.lastConsumed()),
                 // The listener that will handle each incoming message
                 messageListener);
+    }
+
+    private void createConsumerGroupIfNeeded(StringRedisTemplate stringRedisTemplate) {
+        try {
+            stringRedisTemplate.opsForStream().createGroup(MESSAGE_STREAM_JSON, MESSAGE_GROUP);
+        } catch (RedisSystemException e) {
+            if (e.getCause() instanceof RedisBusyException) {
+                log.info("Group '{}' already exists", MESSAGE_STREAM_JSON);
+            } else {
+                throw e;
+            }
+        }
     }
 }

@@ -13,4 +13,5 @@ include 'pub_sub',
         'stream:subscriber_json_poll_timeout',
         'stream:subscriber_simple_read_scheduler',
         'stream:subscriber_json_reactive_webflux',
+        'stream:offset:latest',
         'cache'
