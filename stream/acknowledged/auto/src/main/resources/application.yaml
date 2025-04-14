@@ -17,4 +17,4 @@ spring:
       password: ${REDIS_PASSWORD:}
 
 server:
-  port: 8081
+  port: 8082
