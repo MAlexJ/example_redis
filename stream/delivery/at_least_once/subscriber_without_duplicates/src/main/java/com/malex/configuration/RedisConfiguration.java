@@ -1,9 +1,7 @@
 package com.malex.configuration;
 
-import com.malex.subsctiber.MessageStreamListener;
 import io.lettuce.core.RedisBusyException;
 import java.time.Duration;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -22,7 +20,6 @@ import org.springframework.data.redis.stream.Subscription;
 
 @Slf4j
 @Configuration
-@RequiredArgsConstructor
 public class RedisConfiguration {
 
   @Value("${server.port}")
@@ -30,14 +27,14 @@ public class RedisConfiguration {
 
   private static final String MESSAGE_STREAM_JSON = "message-stream-json";
 
-  public static final String CONSUMER_GROUP = "message-group-offset-beginning-of-stream";
+  public static final String CONSUMER_GROUP = "message-group-subscriber-without-duplicates";
 
   private final String consumerName =
-      "consumer-offset-beginning-of-stream-%s".formatted(serverPort);
+      "consumer-subscriber-without-duplicates-%s".formatted(serverPort);
 
   @Bean
   public StreamMessageListenerContainer<String, MapRecord<String, String, String>>
-      messageListenerContainer(RedisConnectionFactory redisConnectionFactory) {
+      listenerContainer(RedisConnectionFactory redisConnectionFactory) {
 
     // Configure a poll timeout for the BLOCK option during reading.
     var options =
@@ -48,37 +45,26 @@ public class RedisConfiguration {
     return StreamMessageListenerContainer.create(redisConnectionFactory, options);
   }
 
-  /**
-   * Registers a Redis stream consumer and starts listening for messages.
-   *
-   * @param messageListener the listener that handles, see {@link MessageStreamListener
-   *     implementation} for more details.
-   */
   @Bean
-  public Subscription subscription(
+  public Subscription streamListenerContainer(
       StreamMessageListenerContainer<String, MapRecord<String, String, String>> listenerContainer,
-      StreamListener<String, MapRecord<String, String, String>> messageListener,
-      StringRedisTemplate stringRedisTemplate) {
+      StringRedisTemplate stringRedisTemplate,
+      StreamListener<String, MapRecord<String, String, String>> messageListener) {
 
     // Create a consumer group if it does not already exist
     createConsumerGroupIfNeeded(stringRedisTemplate);
 
-    // Start the listener container to begin consuming messages from the Redis stream
+    // Start the listener container
     listenerContainer.start();
 
-    // Subscribe to the stream and automatically acknowledge messages
-    return listenerContainer.receiveAutoAck(
-        /*
-         * Create a consumer with a unique name within the specified consumer group
-         * group – name of the consumer group, must not be null or empty.
-         * name – name of the consumer, must not be null or empty.
-         *              */
+    // Subscribe to the stream
+    return listenerContainer.receive(
         Consumer.from(CONSUMER_GROUP, consumerName),
-
-        // Tell Redis to start reading from the earliest available message
+        /*
+         * Create a stream offset for the MESSAGE_STREAM_JSON stream,
+         * starting from the last consumed message in the consumer group.
+         */
         StreamOffset.create(MESSAGE_STREAM_JSON, ReadOffset.lastConsumed()),
-
-        // The listener that will handle each incoming message
         messageListener);
   }
 
