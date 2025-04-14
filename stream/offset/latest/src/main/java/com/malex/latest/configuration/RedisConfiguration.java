@@ -3,9 +3,9 @@ package com.malex.latest.configuration;
 import com.malex.latest.subsctiber.MessageStreamListener;
 import io.lettuce.core.RedisBusyException;
 import java.time.Duration;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.RedisSystemException;
@@ -24,9 +24,14 @@ import org.springframework.data.redis.stream.Subscription;
 @RequiredArgsConstructor
 public class RedisConfiguration {
 
+  @Value("${server.port}")
+  private int serverPort;
+
   private static final String MESSAGE_STREAM_JSON = "message-stream-json";
 
-  private static final String MESSAGE_GROUP = "message-group-offset-latest";
+  private static final String CONSUMER_GROUP = "message-group-offset-latest";
+
+  private final String consumerName = "consumer-offset-latest-%s".formatted(serverPort);
 
   @Bean
   public StreamMessageListenerContainer<String, MapRecord<String, String, String>>
@@ -62,7 +67,7 @@ public class RedisConfiguration {
     // Subscribe to the stream and automatically acknowledge messages
     return listenerContainer.receiveAutoAck(
         // Create a consumer with a unique name within the specified consumer group
-        Consumer.from(MESSAGE_GROUP, "consumer-" + UUID.randomUUID()),
+        Consumer.from(CONSUMER_GROUP, consumerName),
 
         /* error ->  StreamOffset.create(MESSAGE_STREAM_JSON, ReadOffset.latest()),
          *
@@ -80,7 +85,7 @@ public class RedisConfiguration {
 
   private void createConsumerGroupIfNeeded(StringRedisTemplate stringRedisTemplate) {
     try {
-      stringRedisTemplate.opsForStream().createGroup(MESSAGE_STREAM_JSON, MESSAGE_GROUP);
+      stringRedisTemplate.opsForStream().createGroup(MESSAGE_STREAM_JSON, CONSUMER_GROUP);
     } catch (RedisSystemException e) {
       if (e.getCause() instanceof RedisBusyException) {
         log.info("Group '{}' already exists", MESSAGE_STREAM_JSON);
