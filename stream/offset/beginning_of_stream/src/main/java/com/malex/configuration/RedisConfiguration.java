@@ -3,9 +3,9 @@ package com.malex.configuration;
 import com.malex.subsctiber.MessageStreamListener;
 import io.lettuce.core.RedisBusyException;
 import java.time.Duration;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.RedisSystemException;
@@ -14,6 +14,7 @@ import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.core.StreamOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.stream.StreamListener;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer;
@@ -24,8 +25,14 @@ import org.springframework.data.redis.stream.Subscription;
 @RequiredArgsConstructor
 public class RedisConfiguration {
 
+  @Value("${server.port}")
+  private int serverPort;
+
   private static final String MESSAGE_STREAM_JSON = "message-stream-json";
-  private static final String MESSAGE_GROUP = "message-group-offset-" + UUID.randomUUID();
+
+  private static final String MESSAGE_GROUP = "message-group-offset-beginning-of-stream";
+
+  private final String consumerName = "consumer-offset-%s".formatted(serverPort);
 
   @Bean
   public StreamMessageListenerContainer<String, MapRecord<String, String, String>>
@@ -65,7 +72,7 @@ public class RedisConfiguration {
          * group – name of the consumer group, must not be null or empty.
          * name – name of the consumer, must not be null or empty.
          *              */
-        Consumer.from(MESSAGE_GROUP, "consumer-offset"),
+        Consumer.from(MESSAGE_GROUP, consumerName),
 
         // Tell Redis to start reading from the earliest available message
         StreamOffset.create(MESSAGE_STREAM_JSON, ReadOffset.lastConsumed()),
@@ -75,17 +82,14 @@ public class RedisConfiguration {
   }
 
   private void createConsumerGroupIfNeeded(StringRedisTemplate stringRedisTemplate) {
+    StreamOperations<String, Object, Object> streamOps = stringRedisTemplate.opsForStream();
+
     try {
-      // Create the consumer group if it doesn't exist
-      stringRedisTemplate
-          .getConnectionFactory()
-          .getConnection()
-          .xGroupCreate(
-              MESSAGE_STREAM_JSON.getBytes(),
-              MESSAGE_GROUP,
-              ReadOffset.from("0"), // start reading from the beginning
-              true // create the stream if not exists
-              );
+      streamOps.createGroup(
+          MESSAGE_STREAM_JSON,
+          ReadOffset.from("0"), // Start reading from the very beginning of the stream
+          MESSAGE_GROUP);
+      log.info("Consumer group '{}' created", MESSAGE_GROUP);
     } catch (RedisSystemException e) {
       if (e.getCause() instanceof RedisBusyException) {
         log.info("Group '{}' already exists", MESSAGE_GROUP);
