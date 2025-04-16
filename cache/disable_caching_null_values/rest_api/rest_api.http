@@ -1,0 +1,11 @@
+### OK
+GET http://localhost:8080/v1/api/status/200
+
+### BAD_REQUEST exception
+GET http://localhost:8080/v1/api/status/400
+
+### NOT_FOUND exception
+GET http://localhost:8080/v1/api/status/404
+
+### NOT_FOUND exception
+GET http://localhost:8080/v1/api/status/500
