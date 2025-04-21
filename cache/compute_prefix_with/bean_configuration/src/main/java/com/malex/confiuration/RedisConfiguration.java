@@ -37,7 +37,7 @@ public class RedisConfiguration {
   public RedisCacheConfiguration cacheConfigForSet(ObjectMapper mapper) {
     var valueSerializer =
         RedisSerializationContext.SerializationPair.fromSerializer(
-            new CustomClassToSetSerializer(Task.class, mapper));
+            new CustomClassToSetSerializer<>(Task.class, mapper));
     var keySerializer =
         RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer());
 
