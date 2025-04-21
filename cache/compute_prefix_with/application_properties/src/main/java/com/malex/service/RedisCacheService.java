@@ -1,8 +1,5 @@
 package com.malex.service;
 
-import static com.malex.confiuration.RedisConfiguration.TASK_CACHE;
-import static com.malex.confiuration.RedisConfiguration.TASK_CACHE_KEY;
-
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
@@ -18,6 +15,9 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class RedisCacheService {
+
+  public static final String TASK_CACHE = "task_cache";
+  public static final String TASK_CACHE_KEY = "'task'";
 
   private final CopyOnWriteArraySet<Task> set = new CopyOnWriteArraySet<>();
 

@@ -11,6 +11,9 @@ spring:
 
   cache:
     type: redis
+    redis:
+      key-prefix: 'myapp:'
+#      use-key-prefix: true
 
   data:
     redis:
