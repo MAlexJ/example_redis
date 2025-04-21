@@ -30,4 +30,6 @@ include 'pub_sub',
         'stream:offset:beginning_of_stream',
         'cache',
         'cache:compute_prefix_with',
+        'cache:compute_prefix_with:application_properties',
+        'cache:compute_prefix_with:bean_configuration',
         'cache:disable_caching_null_values'

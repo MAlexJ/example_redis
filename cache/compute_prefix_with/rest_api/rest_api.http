@@ -1,11 +1,14 @@
-### OK
-GET http://localhost:8080/v1/api/status/200
+### Create task
+POST http://localhost:8080/api/v1/tasks
+Content-Type: application/json
 
-### BAD_REQUEST exception
-GET http://localhost:8080/v1/api/status/400
+{
+  "id": "1",
+  "name": "create"
+}
 
-### NOT_FOUND exception
-GET http://localhost:8080/v1/api/status/404
+### Find all
+GET http://localhost:8080/api/v1/tasks
 
-### NOT_FOUND exception
-GET http://localhost:8080/v1/api/status/500
+### refresh cache
+DELETE http://localhost:8080/api/v1/tasks

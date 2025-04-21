@@ -1,5 +1,5 @@
 buildscript {
-    new BufferedReader(new FileReader(file('../../gradle.properties')))
+    new BufferedReader(new FileReader(file('../../../gradle.properties')))
             .withCloseable { reader ->
                 String line
                 while ((line = reader.readLine()) != null) {
