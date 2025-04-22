@@ -1,4 +1,4 @@
-package com.malex.confiuration;
+package com.malex.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -30,22 +30,24 @@ public class RedisConfiguration {
   @Bean
   public RedisCacheManager redisCacheConfiguration(
       RedisConnectionFactory connectionFactory, RedisCacheConfiguration configuration) {
-    return RedisCacheManager.builder(connectionFactory).cacheDefaults(configuration).build();
+    return RedisCacheManager.builder(connectionFactory)
+        .withCacheConfiguration(TASK_CACHE, configuration)
+        .build();
   }
 
   @Bean
-  public RedisCacheConfiguration cacheConfigForSet(ObjectMapper mapper) {
+  public RedisCacheConfiguration configuration(ObjectMapper mapper) {
     var valueSerializer =
         RedisSerializationContext.SerializationPair.fromSerializer(
-            new CustomTaskSetSerializer<>(mapper));
+            new CustomTaskListSerializer<>(mapper));
     var keySerializer =
         RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer());
 
     return RedisCacheConfiguration.defaultCacheConfig()
         .serializeKeysWith(keySerializer)
         .serializeValuesWith(valueSerializer)
-        .disableCachingNullValues()
         .entryTtl(Duration.ofMinutes(5))
+        .disableCachingNullValues()
         /*
          * Use the given CacheKeyPrefix to compute the prefix for the actual Redis key given the cache name as function input
          */

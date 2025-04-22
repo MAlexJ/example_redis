@@ -1,22 +1,23 @@
-package com.malex.confiuration;
+package com.malex.configuration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.malex.service.Task;
 import java.io.IOException;
-import java.util.Set;
+import java.util.List;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 
-public class CustomClassToSetSerializer<T> implements RedisSerializer<T> {
+public class CustomTaskListSerializer<T> implements RedisSerializer<T> {
 
   private final ObjectMapper objectMapper;
 
   private final JavaType javaType;
 
-  public CustomClassToSetSerializer(Class<T> elementType, ObjectMapper objectMapper) {
+  public CustomTaskListSerializer(ObjectMapper objectMapper) {
     this.objectMapper = objectMapper;
-    this.javaType = objectMapper.getTypeFactory().constructCollectionType(Set.class, elementType);
+    this.javaType = objectMapper.getTypeFactory().constructCollectionType(List.class, Task.class);
   }
 
   @Override

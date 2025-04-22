@@ -16,5 +16,17 @@ spring:
       username: ${REDIS_USERNAME:}
       password: ${REDIS_PASSWORD:}
 
+caching:
+  scheduled:
+    tasks:
+      cache-eviction-cron: ${APP_SERVICE_CHEATERS_DATA_CACHE_CRON:0 */1 * * * *}
+
+logging:
+  level:
+    org.springframework.cache: TRACE
+    org.springframework.data.redis.cache: TRACE
+    org.springframework.data.redis.core: DEBUG
+    org.springframework.data.redis.connection: DEBUG
+
 server:
   port: 8080
