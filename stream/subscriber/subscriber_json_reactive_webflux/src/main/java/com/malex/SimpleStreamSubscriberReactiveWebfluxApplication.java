@@ -1,4 +1,4 @@
-package example.java.simple_stream_subscriber_reactive_webflux;
+package com.malex;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

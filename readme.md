@@ -18,7 +18,7 @@ consistency and readability.
 project: google-java-format,
 link: https://github.com/google/google-java-format/blob/master/README.md#intellij-jre-config
 
-### Github action
+### GitHub action
 
 issue:  ./gradlew: Permission denied
 link: https://stackoverflow.com/questions/17668265/gradlew-permission-denied
