@@ -5,7 +5,7 @@ Introduction to Redis streams
 link: https://redis.io/docs/latest/develop/data-types/streams/
 
 A Redis stream is a data structure that acts like an append-only log but also implements several operations
-to overcome some of the limits of a typical append-only log.
+to overcome some limits of a typical append-only log.
 
 These include random access in O(1) time and complex consumption strategies, such as consumer groups.
 You can use streams to record and simultaneously syndicate events in real time.
@@ -17,7 +17,7 @@ Examples of Redis stream use cases include:
 
 Redis generates a unique ID for each stream entry.
 You can use these IDs to retrieve their associated entries later or to read
-and process all subsequent entries in the stream.
+and process all later entries in the stream.
 Note that because these IDs are related to time, the ones shown here may vary and will be different
 from the IDs you see in your own Redis instance.
 

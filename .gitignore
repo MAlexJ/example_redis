@@ -6,6 +6,7 @@ amplicode.xml
 !**/src/main/**/build/
 !**/src/test/**/build/
 .env
+*.vscode
 
 ### STS ###
 .apt_generated
