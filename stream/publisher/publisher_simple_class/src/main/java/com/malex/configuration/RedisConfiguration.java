@@ -17,9 +17,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 public class RedisConfiguration {
 
   @Bean
-  public Jackson2JsonRedisSerializer<MessageEvent> jsonRedisSerializer() {
-    // Custom ObjectMapper
-    ObjectMapper objectMapper = new ObjectMapper();
+  public Jackson2JsonRedisSerializer<MessageEvent> jsonRedisSerializer(ObjectMapper objectMapper) {
 
     /*
      * Make ALL fields (including private ones) visible for serialization and deserialization
@@ -29,13 +27,22 @@ public class RedisConfiguration {
     objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
 
     /*
+     * Security of Default Typing:
+     * Risk: As before, enabling default typing can be a security risk.
+     *
+     * This code is a security measure to ensure that Jackson can deserialize only your own event classes
+     * when using polymorphic type handling with Redis. This is a best practice when enabling default typing.
+     */
+    BasicPolymorphicTypeValidator ptv =
+        BasicPolymorphicTypeValidator.builder().allowIfSubType("com.malex.publisher.event").build();
+
+    /*
      * Enable default typing for polymorphic type handling (e.g. when you have abstract types, interfaces)
      * This will include class metadata like "@class": "com.example.MyClass" in the JSON
      * NON_FINAL = only apply this to non-final classes (not String, Integer, etc.)
      * BasicPolymorphicTypeValidator is a safe way to whitelist which classes can be deserialized
      */
-    objectMapper.activateDefaultTyping(
-        BasicPolymorphicTypeValidator.builder().build(), ObjectMapper.DefaultTyping.NON_FINAL);
+    objectMapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL);
 
     // Better for LocalDateTime
     objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);

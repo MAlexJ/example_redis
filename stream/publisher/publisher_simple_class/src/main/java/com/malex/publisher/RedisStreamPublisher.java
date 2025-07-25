@@ -1,6 +1,5 @@
 package com.malex.publisher;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.malex.publisher.event.MessageEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +17,6 @@ public class RedisStreamPublisher {
   private static final String STREAM_KEY = "message-stream-class";
 
   private final RedisTemplate<String, MessageEvent> redisTemplate;
-
-  private final ObjectMapper mapper;
 
   // keep latest 10 messages
   private static final long MAX_STREAM_LENGTH = 10L;
