@@ -15,41 +15,31 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RedisStreamPublisher {
 
-  private final String streamName;
-  private final String streamKey;
-  private final long maxStreamLength;
-
   private final RedisTemplate<String, MessageEvent> redisTemplate;
 
-  private XAddOptions options;
+  @Value("${redis.stream.name}")
+  private String streamName;
 
-  public RedisStreamPublisher(
-      RedisTemplate<String, MessageEvent> redisTemplate,
-      @Value("${redis.stream.name}") String streamName,
-      @Value("${redis.stream.key}") String streamKey,
-      @Value("${redis.stream.max-length}") long maxStreamLength) {
-    this.redisTemplate = redisTemplate;
-    this.streamName = streamName;
-    this.streamKey = streamKey;
-    this.maxStreamLength = maxStreamLength;
-    this.options = XAddOptions.maxlen(maxStreamLength).approximateTrimming(false);
-  }
+  @Value("${redis.stream.key}")
+  private String streamKey;
+
+  @Value("${redis.stream.max-length}")
+  private long maxStreamLength;
 
   /*
    * Publishes a MessageEvent to a Redis stream in JSON format.
    *
    * The event is serialized into a JSON string and stored in the stream as single field "data".
-   * The stream is trimmed to keep only the latest {@code MAX_STREAM_LENGTH} entries.
+   * The stream is trimmed to keep only the latest {@code maxStreamLength} entries.
    */
   public void publishEventAsJson(MessageEvent event) {
-
+    // Set stream trimming options: keep only the latest N messages
+    var options = XAddOptions.maxlen(maxStreamLength).approximateTrimming(false);
     // Create a stream record with the specified key and message map
     Map<String, Object> messageMap = Map.of(streamKey, event);
     MapRecord<String, String, Object> mapRecord = MapRecord.create(streamName, messageMap);
-
     // Publish the record to the Redis stream
     var recordId = redisTemplate.opsForStream().add(mapRecord, options);
-
     // log record
     log.info("Published event to stream. RecordId: {}", recordId);
   }
