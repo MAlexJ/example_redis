@@ -18,20 +18,20 @@ public class RedisConfiguration {
 
   @Bean
   public Jackson2JsonRedisSerializer<MessageEvent> jsonRedisSerializer(ObjectMapper objectMapper) {
+    // Clone the injected ObjectMapper to avoid global side effects
+    ObjectMapper redisMapper = objectMapper.copy();
 
     /*
      * Make ALL fields (including private ones) visible for serialization and deserialization
      * PropertyAccessor.ALL = fields, getters/setters, etc.
      * JsonAutoDetect.Visibility.ANY = even private fields are included
      */
-    objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+    redisMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
 
     /*
      * Security of Default Typing:
-     * Risk: As before, enabling default typing can be a security risk.
-     *
-     * This code is a security measure to ensure that Jackson can deserialize only your own event classes
-     * when using polymorphic type handling with Redis. This is a best practice when enabling default typing.
+     * Restrict deserialization to only classes in the com.malex.publisher.event package.
+     * This is a security measure to prevent deserialization attacks.
      */
     BasicPolymorphicTypeValidator ptv =
         BasicPolymorphicTypeValidator.builder().allowIfSubType("com.malex.publisher.event").build();
@@ -42,22 +42,30 @@ public class RedisConfiguration {
      * NON_FINAL = only apply this to non-final classes (not String, Integer, etc.)
      * BasicPolymorphicTypeValidator is a safe way to whitelist which classes can be deserialized
      */
-    objectMapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL);
+    redisMapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL);
 
     // Better for LocalDateTime
-    objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    redisMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     // Jackson serializer with pre-configured mapper
-    return new Jackson2JsonRedisSerializer<>(objectMapper, MessageEvent.class);
+    return new Jackson2JsonRedisSerializer<>(redisMapper, MessageEvent.class);
   }
 
-  @Bean
+  /*
+   * RedisTemplate bean for MessageEvent objects.
+   *
+   * Note: By default, RedisTemplate does not handle null values. If you need to cache nulls,
+   * consider additional logic.
+   *
+   * Performance: Jackson's serialization is flexible but may be slower than simple string/byte serialization.
+   * Monitor if high throughput is required.
+   */
+  @Bean(name = "messageEventRedisTemplate")
   public RedisTemplate<String, MessageEvent> redisTemplate(
       RedisConnectionFactory connectionFactory,
       Jackson2JsonRedisSerializer<MessageEvent> jsonRedisSerializer) {
 
     RedisTemplate<String, MessageEvent> template = new RedisTemplate<>();
-
     template.setConnectionFactory(connectionFactory);
 
     // Key , Value serializer

@@ -16,5 +16,11 @@ spring:
       username: ${REDIS_USERNAME:}
       password: ${REDIS_PASSWORD:}
 
+redis:
+  stream:
+    name: message-stream-json
+    key: message
+    max-length: 3
+
 server:
   port: 8080
