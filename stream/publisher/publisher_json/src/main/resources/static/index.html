@@ -66,15 +66,17 @@
                     },
                     body: JSON.stringify(messageEventJson)
                 });
-                if (response.ok) {
-                    setStatus("Message sent successfully!");
-                    setTitle('');
-                    setContent('');
-                } else {
+
+                if (!response.ok) {
                     setStatus("Error sending message.");
+                    return;
                 }
-            } catch (error) {
-                console.error("Error:", error);
+
+                setStatus("Message sent successfully!");
+                setTitle('');
+                setContent('');
+            } catch (err) {
+                console.error(err);
                 setStatus("Error sending message.");
             }
         };
