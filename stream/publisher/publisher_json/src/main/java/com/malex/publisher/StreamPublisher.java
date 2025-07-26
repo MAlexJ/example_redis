@@ -1,6 +1,6 @@
 package com.malex.publisher;
 
-import com.malex.configuration.RedisStreamProperties;
+import com.malex.configuration.StreamProperties;
 import com.malex.publisher.event.MessageEvent;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -13,10 +13,10 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class RedisStreamPublisher {
+public class StreamPublisher {
 
   private final RedisTemplate<String, MessageEvent> redisTemplate;
-  private final RedisStreamProperties redisStreamProperties;
+  private final StreamProperties streamProperties;
 
   /*
    * Publishes a MessageEvent to a Redis stream in JSON format.
@@ -25,8 +25,8 @@ public class RedisStreamPublisher {
    * The stream is trimmed to keep only the latest {@code MAX_STREAM_LENGTH} entries.
    */
   public void publishEventAsJson(MessageEvent event) {
-    var streamName = redisStreamProperties.getName();
-    var streamKey = redisStreamProperties.getKey();
+    var streamName = streamProperties.getName();
+    var streamKey = streamProperties.getKey();
 
     // Create a stream record with the specified key and message map
     Map<String, Object> messageMap = Map.of(streamKey, event);
@@ -43,6 +43,6 @@ public class RedisStreamPublisher {
    * Set stream trimming options: keep only the latest N messages
    */
   private XAddOptions getOptions() {
-    return XAddOptions.maxlen(redisStreamProperties.getMaxLength()).approximateTrimming(false);
+    return XAddOptions.maxlen(streamProperties.getMaxLength()).approximateTrimming(false);
   }
 }

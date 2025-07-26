@@ -1,7 +1,6 @@
-package com.malex.controller;
+package com.malex.rest;
 
-import com.malex.controller.dto.MessageDto;
-import com.malex.publisher.RedisStreamPublisher;
+import com.malex.publisher.StreamPublisher;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,15 +10,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/v1/api")
+@RequestMapping("/v1/api/messages")
 @RequiredArgsConstructor
-public class RestApiController {
+public class MessageController {
 
-  private final RedisStreamPublisher publisher;
+  private final StreamPublisher publisher;
 
-  @PostMapping("/messages")
-  public ResponseEntity<Void> sendMessage(@RequestBody @Valid MessageDto dto) {
-    publisher.publishEventAsJson(dto.toEvent());
+  @PostMapping
+  public ResponseEntity<Void> sendMessage(@RequestBody @Valid MessageRequest request) {
+    publisher.publishEventAsJson(request.mapToEvent());
     return ResponseEntity.noContent().build();
   }
 }

@@ -2,4 +2,4 @@ package com.malex.publisher.event;
 
 import java.time.LocalDateTime;
 
-public record MessageEvent(String sender, String content, LocalDateTime timestamp) {}
+public record MessageEvent(String title, String content, LocalDateTime timestamp) {}

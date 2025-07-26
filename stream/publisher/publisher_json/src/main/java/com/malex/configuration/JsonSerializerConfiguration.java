@@ -7,17 +7,12 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.malex.publisher.event.MessageEvent;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
-@EnableConfigurationProperties(RedisStreamProperties.class)
-public class RedisConfiguration {
+public class JsonSerializerConfiguration {
 
   @Bean
   public Jackson2JsonRedisSerializer<MessageEvent> jsonRedisSerializer(ObjectMapper objectMapper) {
@@ -58,25 +53,5 @@ public class RedisConfiguration {
 
     // Jackson serializer with pre-configured mapper
     return new Jackson2JsonRedisSerializer<>(redisMapper, MessageEvent.class);
-  }
-
-  @Bean
-  public RedisTemplate<String, MessageEvent> redisTemplate(
-      RedisConnectionFactory connectionFactory,
-      Jackson2JsonRedisSerializer<MessageEvent> jsonRedisSerializer) {
-
-    RedisTemplate<String, MessageEvent> template = new RedisTemplate<>();
-
-    template.setConnectionFactory(connectionFactory);
-
-    // Key, Value serializer
-    template.setKeySerializer(new StringRedisSerializer());
-    template.setValueSerializer(jsonRedisSerializer);
-
-    // Hash: Key , Value serializer
-    template.setHashKeySerializer(new StringRedisSerializer());
-    template.setHashValueSerializer(jsonRedisSerializer);
-
-    return template;
   }
 }
