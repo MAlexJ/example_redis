@@ -39,7 +39,7 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-//	implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonDatatypeJsr310Version}"
+	implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonDatatypeJsr310Version}"
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 }

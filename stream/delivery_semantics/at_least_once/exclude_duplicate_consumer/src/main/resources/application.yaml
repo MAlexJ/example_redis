@@ -19,9 +19,12 @@ spring:
 redis:
   stream:
     name: exclude_duplicate_producer_stream_json
+    field:
+      name: event
     consumer:
-      group: consumer_group_subscriber
-    key: event
+      group: consumer_exclude_duplicate_group_subscriber
+
+    processed-message-ttl-minutes: 5
 
 server:
   port: 8081

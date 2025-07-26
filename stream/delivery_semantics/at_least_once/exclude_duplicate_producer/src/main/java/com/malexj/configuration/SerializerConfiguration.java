@@ -6,16 +6,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.malexj.producer.MessageEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializer;
 
 @Configuration
-public class JsonSerializerConfiguration {
+public class SerializerConfiguration {
 
   @Bean
-  public Jackson2JsonRedisSerializer<MessageEvent> jsonRedisSerializer(ObjectMapper objectMapper) {
+  public RedisSerializer<Object> redisSerializer(ObjectMapper objectMapper) {
     // Clone the injected ObjectMapper to avoid global side effects
     ObjectMapper redisMapper = objectMapper.copy();
 
@@ -28,11 +28,11 @@ public class JsonSerializerConfiguration {
 
     /*
      * Security of Default Typing:
-     * Restrict deserialization to only classes in the com.malex.publisher.event package.
+     * Restrict deserialization to only classes in the "com.example.models"  package.
      * This is a security measure to prevent deserialization attacks.
      */
     BasicPolymorphicTypeValidator ptv =
-        BasicPolymorphicTypeValidator.builder().allowIfSubType("com.malex.publisher").build();
+        BasicPolymorphicTypeValidator.builder().allowIfSubType("com.malexj.producer").build();
 
     /*
      * Enable default typing for polymorphic type handling (e.g. when you have abstract types, interfaces)
@@ -42,7 +42,9 @@ public class JsonSerializerConfiguration {
      */
     redisMapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL);
 
-    // Register JavaTimeModule to handle Java 8+ date/time types (LocalDate, LocalDateTime, etc.)
+    /*
+     * Register JavaTimeModule to handle Java 8+ date/time types (LocalDate, LocalDateTime, etc.)
+     */
     redisMapper.registerModule(new JavaTimeModule());
 
     /*
@@ -51,7 +53,7 @@ public class JsonSerializerConfiguration {
      */
     redisMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-    // Jackson serializer with pre-configured mapper
-    return new Jackson2JsonRedisSerializer<>(redisMapper, MessageEvent.class);
+    // JSON serializer with pre-configured mapper
+    return new GenericJackson2JsonRedisSerializer(redisMapper);
   }
 }

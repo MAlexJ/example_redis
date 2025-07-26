@@ -1,13 +1,11 @@
 package com.malex.configuration;
 
 import io.lettuce.core.RedisBusyException;
-import java.time.Duration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
@@ -20,7 +18,7 @@ import org.springframework.data.redis.stream.Subscription;
 
 @Slf4j
 @Configuration
-public class RedisConfiguration {
+public class SubscriptionConfiguration {
 
   @Value("${server.port}")
   private int serverPort;
@@ -33,19 +31,6 @@ public class RedisConfiguration {
 
   private final String consumerName =
       "consumer-subscriber-without-duplicates-%s".formatted(serverPort);
-
-  @Bean
-  public StreamMessageListenerContainer<String, MapRecord<String, String, String>>
-      listenerContainer(RedisConnectionFactory redisConnectionFactory) {
-
-    // Configure a poll timeout for the BLOCK option during reading.
-    var options =
-        StreamMessageListenerContainer.StreamMessageListenerContainerOptions.builder()
-            .pollTimeout(Duration.ofSeconds(1))
-            .build();
-
-    return StreamMessageListenerContainer.create(redisConnectionFactory, options);
-  }
 
   @Bean
   public Subscription streamListenerContainer(
@@ -70,6 +55,12 @@ public class RedisConfiguration {
         messageListener);
   }
 
+  /*
+   * Create a consumer group. This command creates the stream if it does not already exist.
+   *
+   * Note:
+   *   read offset - start reading from the very beginning of the stream
+   */
   private void createConsumerGroupIfNeeded(StringRedisTemplate stringRedisTemplate) {
     StreamOperations<String, Object, Object> streamOps = stringRedisTemplate.opsForStream();
 
@@ -83,9 +74,11 @@ public class RedisConfiguration {
     } catch (RedisSystemException e) {
       if (e.getCause() instanceof RedisBusyException) {
         log.info("Group '{}' already exists", consumerGroup);
-      } else {
-        throw e;
+        return;
       }
+
+      log.error("Error while creating group '{}'", consumerGroup, e);
+      throw e;
     }
   }
 }

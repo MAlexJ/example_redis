@@ -1,6 +1,9 @@
 package com.malex.listener;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,10 +18,17 @@ import org.springframework.stereotype.Service;
 public class MessageStreamListener
     implements StreamListener<String, MapRecord<String, String, String>> {
 
+  @Value("${redis.stream.field.name}")
+  private String fieldName;
+
   @Value("${redis.stream.consumer.group}")
   private String consumerGroup;
 
+  @Value("${redis.stream.processed-message-ttl-minutes}")
+  private int processedMessageTtlSeconds;
+
   private final RedisTemplate<String, String> redisTemplate;
+  private final ObjectMapper objectMapper;
 
   /*
    * Redis stream message listener that implements at-least-once message delivery
@@ -32,14 +42,15 @@ public class MessageStreamListener
     // Extract the unique message ID from the stream record
     String messageId = objectRecord.getId().getValue();
 
-    // Extract the actual message payload (key-value map)
-    var event = objectRecord.getValue();
-
-    // Construct a Redis key to mark the message as processed
+    /*
+     * Construct a Redis key to mark the message as processed
+     *
+     * verify key in CLI: SCAN 0 MATCH processed:* COUNT 100
+     */
     String processedKey = "processed:" + messageId;
 
     // Check if this message has already been processed (exists in Redis)
-    Boolean alreadyProcessed = redisTemplate.hasKey(processedKey);
+    boolean alreadyProcessed = redisTemplate.hasKey(processedKey);
     if (alreadyProcessed) {
       // If the message is already processed, log and acknowledge it to remove from pending
       log.info("Duplicate message: {}", messageId);
@@ -47,13 +58,20 @@ public class MessageStreamListener
       return;
     }
 
-    try {
-      // Business logic goes here — e.g., process the event
-      log.info(" >>> Processing event: {}", event);
+    // Extract the actual message payload (key-value map)
+    Map<String, String> eventMap = objectRecord.getValue();
 
-      // Mark the message as processed in Redis with a TTL (e.g., 5 seconds)
-      // You can increase the TTL (e.g., 1 hour or 24 hours) depending on a use case
-      redisTemplate.opsForValue().set(processedKey, "processed", Duration.ofSeconds(5));
+    try {
+      // Deserialize the message to MessageEvent
+      MessageEvent messageEvent = deserializeToMessageEvent(eventMap);
+
+      // Business logic goes here — e.g., process the event
+      log.info(" >>> Processing MessageEvent: {}", messageEvent);
+
+      // Mark the message as processed in Redis with configurable TTL
+      redisTemplate
+          .opsForValue()
+          .set(processedKey, "done", Duration.ofMinutes(processedMessageTtlSeconds));
 
       // Acknowledge the message to Redis (XACK) to remove it from the Pending Entries List (PEL)
       acknowledge(objectRecord);
@@ -74,5 +92,28 @@ public class MessageStreamListener
   private void acknowledge(MapRecord<String, String, String> objectRecord) {
     // Send XACK to Redis, confirming that the message has been successfully handled
     redisTemplate.opsForStream().acknowledge(consumerGroup, objectRecord);
+  }
+
+  /**
+   * Deserializes the Redis stream map to a MessageEvent object.
+   *
+   * @param map the message map from Redis stream
+   * @return the deserialized MessageEvent
+   * @throws JsonProcessingException if deserialization fails
+   */
+  private MessageEvent deserializeToMessageEvent(Map<String, String> map)
+      throws JsonProcessingException {
+
+    /*
+     * Get the JSON string from the event map
+     * The producer sends the MessageEvent as JSON in a field named "event"
+     */
+    var jsonString = map.get(fieldName);
+    if (jsonString == null) {
+      throw new IllegalArgumentException("No 'event' field found in message map");
+    }
+
+    // Deserialize JSON to MessageEvent
+    return objectMapper.readValue(jsonString, MessageEvent.class);
   }
 }

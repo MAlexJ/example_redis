@@ -24,5 +24,3 @@ redis:
     name: exclude_duplicate_producer_stream_json
     key: event
     max-length: 10
-
-

@@ -10,12 +10,13 @@ import com.malex.publisher.event.MessageEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializer;
 
 @Configuration
-public class JsonSerializerConfiguration {
+public class SerializerConfiguration {
 
   @Bean
-  public Jackson2JsonRedisSerializer<MessageEvent> jsonRedisSerializer(ObjectMapper objectMapper) {
+  public RedisSerializer<MessageEvent> redisSerializer(ObjectMapper objectMapper) {
     // Clone the injected ObjectMapper to avoid global side effects
     ObjectMapper redisMapper = objectMapper.copy();
 
