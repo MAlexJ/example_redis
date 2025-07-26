@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: exclude_duplicate_consumer
+
+  threads:
+    virtual:
+      enabled: true
+
+  config:
+    import: optional:file:.env[.properties]
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      username: ${REDIS_USERNAME:}
+      password: ${REDIS_PASSWORD:}
+
+redis:
+  stream:
+    name: exclude_duplicate_producer_stream_json
+    consumer:
+      group: consumer_group_subscriber
+    key: event
+
+server:
+  port: 8081

@@ -25,9 +25,11 @@ public class RedisConfiguration {
   @Value("${server.port}")
   private int serverPort;
 
-  private static final String MESSAGE_STREAM_JSON = "message-stream-json";
+  @Value("${redis.stream.name}")
+  private String stream;
 
-  public static final String CONSUMER_GROUP = "message-group-subscriber-without-duplicates";
+  @Value("${redis.stream.consumer.group}")
+  private String consumerGroup;
 
   private final String consumerName =
       "consumer-subscriber-without-duplicates-%s".formatted(serverPort);
@@ -59,12 +61,12 @@ public class RedisConfiguration {
 
     // Subscribe to the stream
     return listenerContainer.receive(
-        Consumer.from(CONSUMER_GROUP, consumerName),
+        Consumer.from(consumerGroup, consumerName),
         /*
          * Create a stream offset for the MESSAGE_STREAM_JSON stream,
          * starting from the last consumed message in the consumer group.
          */
-        StreamOffset.create(MESSAGE_STREAM_JSON, ReadOffset.lastConsumed()),
+        StreamOffset.create(stream, ReadOffset.lastConsumed()),
         messageListener);
   }
 
@@ -73,14 +75,14 @@ public class RedisConfiguration {
 
     try {
       streamOps.createGroup(
-          MESSAGE_STREAM_JSON,
+          stream,
           // Start reading from the very beginning of the stream
           ReadOffset.from("0"),
-          CONSUMER_GROUP);
-      log.info("Consumer group '{}' created", CONSUMER_GROUP);
+          consumerGroup);
+      log.info("Consumer group '{}' created", consumerGroup);
     } catch (RedisSystemException e) {
       if (e.getCause() instanceof RedisBusyException) {
-        log.info("Group '{}' already exists", CONSUMER_GROUP);
+        log.info("Group '{}' already exists", consumerGroup);
       } else {
         throw e;
       }

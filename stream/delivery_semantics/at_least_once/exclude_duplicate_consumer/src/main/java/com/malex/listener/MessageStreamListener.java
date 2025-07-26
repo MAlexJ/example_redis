@@ -1,10 +1,9 @@
 package com.malex.listener;
 
-import static com.malex.configuration.RedisConfiguration.CONSUMER_GROUP;
-
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.stream.StreamListener;
@@ -13,8 +12,11 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RedisMessageListener
+public class MessageStreamListener
     implements StreamListener<String, MapRecord<String, String, String>> {
+
+  @Value("${redis.stream.consumer.group}")
+  private String consumerGroup;
 
   private final RedisTemplate<String, String> redisTemplate;
 
@@ -38,7 +40,7 @@ public class RedisMessageListener
 
     // Check if this message has already been processed (exists in Redis)
     Boolean alreadyProcessed = redisTemplate.hasKey(processedKey);
-    if (Boolean.TRUE.equals(alreadyProcessed)) {
+    if (alreadyProcessed) {
       // If the message is already processed, log and acknowledge it to remove from pending
       log.info("Duplicate message: {}", messageId);
       acknowledge(objectRecord);
@@ -47,11 +49,11 @@ public class RedisMessageListener
 
     try {
       // Business logic goes here — e.g., process the event
-      log.info("Processing event: {}", event);
+      log.info(" >>> Processing event: {}", event);
 
-      // Mark the message as processed in Redis with a TTL (e.g. 5 seconds)
-      // You can increase the TTL (e.g. 1 hour or 24 hours) depending on use case
-      redisTemplate.opsForValue().set(processedKey, "1", Duration.ofSeconds(5));
+      // Mark the message as processed in Redis with a TTL (e.g., 5 seconds)
+      // You can increase the TTL (e.g., 1 hour or 24 hours) depending on a use case
+      redisTemplate.opsForValue().set(processedKey, "processed", Duration.ofSeconds(5));
 
       // Acknowledge the message to Redis (XACK) to remove it from the Pending Entries List (PEL)
       acknowledge(objectRecord);
@@ -64,13 +66,13 @@ public class RedisMessageListener
   }
 
   /**
-   * Acknowledges the message to Redis, indicating successful processing.
-   * This removes the message from the Consumer Group's Pending Entries List (PEL).
+   * Acknowledges the message to Redis, indicating successful processing. This removes the message
+   * from the Consumer Group's Pending Entries List (PEL).
    *
    * @param objectRecord the Redis stream record to acknowledge
    */
   private void acknowledge(MapRecord<String, String, String> objectRecord) {
     // Send XACK to Redis, confirming that the message has been successfully handled
-    redisTemplate.opsForStream().acknowledge(CONSUMER_GROUP, objectRecord);
+    redisTemplate.opsForStream().acknowledge(consumerGroup, objectRecord);
   }
 }

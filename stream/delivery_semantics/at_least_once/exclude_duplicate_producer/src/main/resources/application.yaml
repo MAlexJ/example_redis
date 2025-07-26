@@ -1,6 +1,9 @@
+server:
+  port: 8080
+
 spring:
   application:
-    name: subscriber_without_duplicates
+    name: exclude_duplicate_producer
 
   threads:
     virtual:
@@ -16,5 +19,10 @@ spring:
       username: ${REDIS_USERNAME:}
       password: ${REDIS_PASSWORD:}
 
-server:
-  port: 8081
+redis:
+  stream:
+    name: exclude_duplicate_producer_stream_json
+    key: event
+    max-length: 10
+
+

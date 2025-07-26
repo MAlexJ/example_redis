@@ -4,9 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class NoDuplicatesApplication {
+public class ExcludeDuplicateConsumerApp {
 
   public static void main(String[] args) {
-    SpringApplication.run(NoDuplicatesApplication.class, args);
+    SpringApplication.run(ExcludeDuplicateConsumerApp.class, args);
   }
 }

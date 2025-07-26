@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Send Message</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <!-- A beautiful CSS framework designed for minimalists. -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/wingcss/0.1.9/wing.min.css"/>
+
+    <!-- React 18 & Babel Standalone -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+</head>
+<body>
+<div class="container" style="margin-top: 3rem;">
+    <div class="row center">
+        <div class="col-4">
+            <h3>Send a Message</h3>
+        </div>
+    </div>
+    <div id="root"></div>
+</div>
+
+<script type="text/babel">
+    const {useState, useEffect} = React;
+
+    function SendMessageApp() {
+        const [title, setTitle] = useState('');
+        const [content, setContent] = useState('');
+        const [status, setStatus] = useState('');
+
+        useEffect(() => {
+            if (status) {
+                const timeout = setTimeout(() => {
+                    setStatus('');
+                }, 1200);
+                return () => clearTimeout(timeout);
+            }
+        }, [status]);
+
+
+        const handleSubmit = async (e) => {
+            /*
+            * This prevents the page from reloading.
+            * Now we can handle submission manually (e.g., with fetch)
+            */
+            e.preventDefault();
+
+            if (!title.trim() || !content.trim()) {
+                setStatus("Please fill in all fields.");
+                return;
+            }
+
+            const messageEventJson = {
+                title: title.trim(),
+                content: content.trim()
+            };
+
+            try {
+                const response = await fetch('/v1/events', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(messageEventJson)
+                });
+
+                if (!response.ok) {
+                    setStatus("Error sending message.");
+                    return;
+                }
+
+                setStatus("Message sent successfully!");
+                setTitle('');
+                setContent('');
+            } catch (err) {
+                console.error(err);
+                setStatus("Error sending message.");
+            }
+        };
+
+        return (
+            <form onSubmit={handleSubmit}>
+
+                <div className="row center">
+                    <div className="col-3">
+                        <label htmlFor="title">Title:</label>
+                        <input
+                            className="input"
+                            type="text"
+                            id="title"
+                            name="title"
+                            required
+                            autoFocus
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                        />
+                    </div>
+                </div>
+
+                <div className="row center">
+                    <div className="col-3">
+                        <label htmlFor="content">Content:</label>
+                        <input
+                            className="input"
+                            type="text"
+                            id="content"
+                            name="content"
+                            required
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
+                        />
+                    </div>
+                </div>
+
+                <div className="row center">
+                    <div className="col">
+                        <button className="button">Send Message</button>
+                    </div>
+                </div>
+                <div className="row center">
+                    <div className="col">
+                        {status}
+                    </div>
+                </div>
+            </form>
+        );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<SendMessageApp/>);
+</script>
+</body>
+</html>
